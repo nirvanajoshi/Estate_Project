@@ -1,23 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
+# start of the project and models are written here
 class Agent(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=15)
-    bio = models.TextField()
+    bio = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True) 
     def __str__(self):
         return self.user.username
   
     
 class PropertyType(models.Model):
-    OPTIONS = (
-        ('house', 'House'),
-        ('apartment', 'Apartment'),
-        ('condo', 'Condo'),
-        ('townhouse', 'Townhouse'),
-    )
-    name = models.CharField(max_length=200, choices=OPTIONS)
+    name = models.CharField(max_length=200)
     def __str__(self):
         return self.name
   
@@ -26,7 +22,7 @@ class Listing(models.Model):
     agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
     property_type = models.ForeignKey(PropertyType, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     bedrooms = models.IntegerField()
     bathrooms = models.IntegerField()
@@ -44,6 +40,8 @@ class Favorite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ('user', 'listing')
     
     def __str__(self):
         return f"{self.user.username} - {self.listing.title}"
@@ -55,6 +53,8 @@ class Inquiry(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
+        return f"Inquiry about {self.listing.title} from {self.user.username}"
+        
  
 class ListingImage(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
