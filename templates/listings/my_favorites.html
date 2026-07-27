@@ -1,0 +1,71 @@
+{% extends 'listings/base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="section-title h3 mb-1"><i class="bi bi-heart me-2 text-danger"></i>My Favorites</h2>
+            <p class="text-muted small mb-0">{{ favorites|length }} saved listing{{ favorites|length|pluralize }}</p>
+        </div>
+        <a href="{% url 'listing_list' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-search me-1"></i> Browse Listings</a>
+    </div>
+
+    {% if favorites %}
+    <div class="row g-4">
+        {% for favorite in favorites %}
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'listing_detail' favorite.listing.pk %}" class="text-decoration-none">
+                <div class="card-custom overflow-hidden h-100">
+                    {% with first_image=favorite.listing.listingimage_set.first %}
+                    {% if first_image %}
+                    <div class="ratio ratio-16x9" style="min-height: 200px;">
+                        <img src="{{ first_image.image.url }}" alt="{{ favorite.listing.title }}" class="card-img-top" style="object-fit: cover;">
+                    </div>
+                    {% else %}
+                    <div class="ratio ratio-16x9 d-flex align-items-center justify-content-center bg-light" style="min-height: 200px;">
+                        <div class="text-center text-muted">
+                            <i class="bi bi-image fs-1"></i>
+                            <p class="small mt-1 mb-0">No image</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h3 class="price-text h4 mb-1">रू {{ favorite.listing.price|floatformat:0|intcomma }}</h3>
+                                <h6 class="fw-semibold mb-1 text-dark">{{ favorite.listing.title }}</h6>
+                                <p class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>{{ favorite.listing.city }}, {{ favorite.listing.state }}</p>
+                            </div>
+                            <a href="{% url 'toggle_favorite' favorite.listing.pk %}" class="btn btn-sm btn-outline-danger rounded-circle p-1" style="width: 36px; height: 36px;" onclick="event.stopPropagation();">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                        <div class="d-flex gap-3 small text-muted">
+                            <span><i class="bi bi-door-closed me-1"></i>{{ favorite.listing.bedrooms }} bed</span>
+                            <span><i class="bi bi-droplet me-1"></i>{{ favorite.listing.bathrooms }} bath</span>
+                            <span><i class="bi bi-arrows-angle-expand me-1"></i>{{ favorite.listing.square_feet }} sqft</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-heartbreak text-muted" style="font-size: 3rem;"></i>
+        <h5 class="mt-3 text-muted">You haven't saved any listings yet.</h5>
+        <p class="text-muted small">Start browsing and save your favorite properties!</p>
+        <a href="{% url 'listing_list' %}" class="btn btn-primary mt-2"><i class="bi bi-search me-1"></i> Browse Listings</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .card-custom { cursor: pointer; }
+    .ratio-16x9 { border-radius: 12px 12px 0 0; overflow: hidden; }
+    .btn-outline-danger { border-color: #FCA5A5; color: #DC2626; }
+    .btn-outline-danger:hover { background: #FEE2E2; border-color: #DC2626; }
+</style>
+{% endblock %}

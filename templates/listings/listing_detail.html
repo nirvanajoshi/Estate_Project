@@ -1,0 +1,145 @@
+{% extends 'listings/base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="container py-4">
+    {% with images=listing.listingimage_set.all %}
+    <!-- Image Gallery -->
+    <div class="card-custom overflow-hidden mb-4">
+        {% if images %}
+        <div class="position-relative" style="background: #F3F4F6;">
+            <img id="mainImage" src="{{ images.first.image.url }}" alt="{{ listing.title }}" class="w-100" style="max-height: 450px; object-fit: cover;">
+        </div>
+        {% if images|length > 1 %}
+        <div class="d-flex gap-2 p-3 bg-white overflow-auto">
+            {% for img in images %}
+            <img src="{{ img.image.url }}" alt="Thumbnail" class="rounded cursor-pointer" style="width: 90px; height: 65px; object-fit: cover; border: 2px solid transparent; cursor: pointer; transition: all 0.2s;" onmouseover="document.getElementById('mainImage').src=this.src; this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='transparent';">
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="d-flex align-items-center justify-content-center bg-light" style="height: 350px;">
+            <div class="text-center text-muted">
+                <i class="bi bi-image fs-1"></i>
+                <p class="mt-2">No images available</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Listing Info -->
+            <div class="card-custom p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                        <h1 class="price-text h2 mb-1">रू {{ listing.price|floatformat:0|intcomma }}</h1>
+                        <h4 class="fw-semibold mb-1">{{ listing.title }}</h4>
+                        <p class="text-muted mb-0"><i class="bi bi-geo-alt me-1"></i>{{ listing.address }}, {{ listing.city }}, {{ listing.state }} {{ listing.zip_code }}</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'toggle_favorite' listing.pk %}" class="btn btn-outline-primary">
+                            <i class="bi bi-heart me-1"></i> Save to Favorites
+                        </a>
+                        {% endif %}
+                        {% if user.is_authenticated and listing.agent.user == request.user %}
+                        <a href="{% url 'add_listing_image' listing.pk %}" class="btn btn-outline-primary">
+                            <i class="bi bi-camera me-1"></i> + Add Photo
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Features Row -->
+                <div class="row g-3 mt-3 pt-3 border-top">
+                    <div class="col-4 text-center">
+                        <div class="bg-light rounded-3 p-3">
+                            <i class="bi bi-door-closed fs-4 text-primary"></i>
+                            <p class="fw-semibold mb-0 mt-1">{{ listing.bedrooms }}</p>
+                            <small class="text-muted">Bedrooms</small>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="bg-light rounded-3 p-3">
+                            <i class="bi bi-droplet fs-4 text-primary"></i>
+                            <p class="fw-semibold mb-0 mt-1">{{ listing.bathrooms }}</p>
+                            <small class="text-muted">Bathrooms</small>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="bg-light rounded-3 p-3">
+                            <i class="bi bi-arrows-angle-expand fs-4 text-primary"></i>
+                            <p class="fw-semibold mb-0 mt-1">{{ listing.square_feet|intcomma }}</p>
+                            <small class="text-muted">Sq. Ft.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mt-4">
+                    <h5 class="section-title h5 mb-3">About This Property</h5>
+                    <p class="text-muted lh-lg" style="line-height: 1.8;">{{ listing.description|linebreaksbr }}</p>
+                </div>
+
+                <!-- Agent Info -->
+                <div class="mt-4 pt-3 border-top">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-weight: 600; font-size: 1.2rem;">
+                            {{ listing.agent.user.username|first|upper }}
+                        </div>
+                        <div>
+                            <p class="fw-semibold mb-0">Listed by {{ listing.agent.user.username }}</p>
+                            <small class="text-muted"><i class="bi bi-telephone me-1"></i>{{ listing.agent.phone }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar - Contact Agent -->
+        <div class="col-lg-4">
+            <div class="card-custom p-4 sticky-sidebar">
+                <h5 class="section-title h5 mb-3"><i class="bi bi-chat-dots me-2 text-primary"></i>Contact Agent</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-muted">Your Message</label>
+                        {{ form.message }}
+                        {% if form.message.errors %}<div class="text-danger small mt-1">{{ form.message.errors }}</div>{% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2"><i class="bi bi-send me-1"></i> Send Inquiry</button>
+                </form>
+                {% if messages %}
+                <div class="mt-3">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} small py-2 mb-0">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+</div>
+
+<style>
+    .sticky-sidebar { position: sticky; top: 90px; }
+    .form-control {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        resize: vertical;
+    }
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+    }
+    label { font-size: 0.9rem; color: var(--text); }
+    .cursor-pointer { cursor: pointer; }
+    .bg-light.rounded-3 { background: var(--bg-alt) !important; }
+    @media (max-width: 991px) {
+        .sticky-sidebar { position: static; }
+    }
+</style>
+{% endblock %}
