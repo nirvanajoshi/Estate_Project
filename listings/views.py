@@ -55,10 +55,28 @@ def listing_list(request):
 
     return render(request, 'listings/listing_list.html', {'listings': listings})
 
-
+@login_required
 def listing_detail(request, pk):
     listing = get_object_or_404(Listing, pk=pk)
-    return render(request, 'listings/listing_detail.html', {'listing': listing})
+    images = listing.listingimage_set.all()
+
+    if request.method == 'POST':
+        form = InquiryForm(request.POST)
+        if form.is_valid():
+            inquiry = form.save(commit=False)
+            inquiry.listing = listing
+            inquiry.user = request.user
+            inquiry.save()
+            messages.success(request, 'Your inquiry has been sent.')
+            return redirect('listing_detail', pk=listing.pk)
+    else:
+        form = InquiryForm()
+
+    return render(request, 'listings/listing_detail.html', {
+        'listing': listing,
+        'images': images,
+        'form': form,
+    })
 
 
 @login_required
